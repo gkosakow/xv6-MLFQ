@@ -7,8 +7,7 @@
 #include "proc.h"
 #include "spinlock.h"
 
-struct
-{
+struct{
   struct spinlock lock;
   struct proc proc[NPROC];
 } ptable;
@@ -21,8 +20,7 @@ extern void trapret(void);
 
 static void wakeup1(void *chan);
 
-void pinit(void)
-{
+void pinit(void){
   initlock(&ptable.lock, "ptable");
 }
 
@@ -32,8 +30,7 @@ void pinit(void)
 //  state required to run in the kernel.
 //  Otherwise return 0.
 static struct proc *
-allocproc(void)
-{
+allocproc(void){
   struct proc *p;
   char *sp;
 
@@ -82,8 +79,7 @@ found:
 
 // PAGEBREAK: 32
 //  Set up first user process.
-void userinit(void)
-{
+void userinit(void){
   struct proc *p;
   extern char _binary_initcode_start[], _binary_initcode_size[];
 
@@ -110,8 +106,7 @@ void userinit(void)
 
 // Grow current process's memory by n bytes.
 // Return 0 on success, -1 on failure.
-int growproc(int n)
-{
+int growproc(int n){
   uint sz;
 
   sz = proc->sz;
@@ -133,8 +128,7 @@ int growproc(int n)
 // Create a new process copying p as the parent.
 // Sets up stack to return as if from system call.
 // Caller must set state of returned proc to RUNNABLE.
-int fork(void)
-{
+int fork(void){
   int i, pid;
   struct proc *np;
 
@@ -143,8 +137,7 @@ int fork(void)
     return -1;
 
   // Copy process state from p.
-  if ((np->pgdir = copyuvm(proc->pgdir, proc->sz)) == 0)
-  {
+  if ((np->pgdir = copyuvm(proc->pgdir, proc->sz)) == 0){
     kfree(np->kstack);
     np->kstack = 0;
     np->state = UNUSED;
@@ -177,8 +170,7 @@ int fork(void)
 // Exit the current process.  Does not return.
 // An exited process remains in the zombie state
 // until its parent calls wait() to find out it exited.
-void exit(void)
-{
+void exit(void){
   struct proc *p;
   int fd;
 
@@ -186,10 +178,8 @@ void exit(void)
     panic("init exiting");
 
   // Close all open files.
-  for (fd = 0; fd < NOFILE; fd++)
-  {
-    if (proc->ofile[fd])
-    {
+  for (fd = 0; fd < NOFILE; fd++){
+    if (proc->ofile[fd]){
       fileclose(proc->ofile[fd]);
       proc->ofile[fd] = 0;
     }
@@ -206,10 +196,8 @@ void exit(void)
   wakeup1(proc->parent);
 
   // Pass abandoned children to init.
-  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-  {
-    if (p->parent == proc)
-    {
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if (p->parent == proc){
       p->parent = initproc;
       if (p->state == ZOMBIE)
         wakeup1(initproc);
@@ -224,23 +212,19 @@ void exit(void)
 
 // Wait for a child process to exit and return its pid.
 // Return -1 if this process has no children.
-int wait(void)
-{
+int wait(void){
   struct proc *p;
   int havekids, pid;
 
   acquire(&ptable.lock);
-  for (;;)
-  {
+  for (;;){
     // Scan through table looking for zombie children.
     havekids = 0;
-    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-    {
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if (p->parent != proc)
         continue;
       havekids = 1;
-      if (p->state == ZOMBIE)
-      {
+      if (p->state == ZOMBIE){
         // Found one.
         pid = p->pid;
         kfree(p->kstack);
@@ -257,8 +241,7 @@ int wait(void)
     }
 
     // No point waiting if we don't have any children.
-    if (!havekids || proc->killed)
-    {
+    if (!havekids || proc->killed){
       release(&ptable.lock);
       return -1;
     }
@@ -279,14 +262,12 @@ int wait(void)
 
 // all scheduler changes made by gkosakow & MatsoA for CIS 450 Project 2
 // queueType = 0 (FQ), 1 (AQ), 2 (EQ)
-void scheduler(void)
-{
+void scheduler(void){
   struct proc *p;
   struct proc *iter;      // declaring proc pointer iter to find runnable processes in the ptable and store them for run
   int aqEmpty = 1;        // adding variable to store if the AQ is empty (no RUNNABLE processes)
 
-  for (;;)
-  {
+  for (;;){
     // Enable interrupts on this processor.
     sti();
 
@@ -294,51 +275,42 @@ void scheduler(void)
     acquire(&ptable.lock);
 
     // for loop to go through each level of queue (FQ, AQ, EQ)
-    for (int q = 0; q < 3; q++)
-    {
+    for (int q = 0; q < 3; q++){
       p = 0;              // initializing the process to be run to 0 to ensure none run before we tell them to
       aqEmpty = 1;        // initializing the aqEmpty var to 1 (AQ is empty)
 
       // check if active queue is empty
-      for (iter = ptable.proc; iter < &ptable.proc[NPROC]; iter++)
-      {
+      for (iter = ptable.proc; iter < &ptable.proc[NPROC]; iter++){
         // if something has queuetype of 1, active queue isn't empty
-        if ((iter->queueType == 1) && (iter->state == RUNNABLE))
-        {
+        if ((iter->queueType == 1) && (iter->state == RUNNABLE)){
           aqEmpty = 0;
         }
       }
 
-      if (aqEmpty == 1)
-      {
-        for (iter = ptable.proc; iter < &ptable.proc[NPROC]; iter++)
-        {
+      if (aqEmpty == 1){
+        for (iter = ptable.proc; iter < &ptable.proc[NPROC]; iter++){
           // if something has queuetype of 1, active queue isn't empty
-          if (iter->queueType == 2)
-          {
+          if (iter->queueType == 2){
             cprintf("AQ empty, switched EQ processes to AQ \n");
             xchg(&iter->queueType, 1);
           }
         }
       }
 
-      for (iter = ptable.proc; iter < &ptable.proc[NPROC]; iter++)
-      {
+      for (iter = ptable.proc; iter < &ptable.proc[NPROC]; iter++){
         // if entry in process table isn't runnable, skip it
         if (iter->state != RUNNABLE)
           continue;
 
         // if process is in queue, pick that one to run
-        if ((iter->queueType == q) && (iter->state == RUNNABLE))
-        {
+        if ((iter->queueType == q) && (iter->state == RUNNABLE)){
           p = iter;
           break;
         }
       }
 
       // if no processes were found in this queue, evaluate next queue
-      if (p == 0)
-      {
+      if (p == 0){
         continue;
       }
 
@@ -346,28 +318,24 @@ void scheduler(void)
 
       switchuvm(proc);
 
-      if (p->queueType == 0)
-      {
+      if (p->queueType == 0){
         cprintf("Process spin %d has consumed 10 ms in FQ \n", proc->pid);
       }
-      if (p->queueType == 1)
-      {
+      if (p->queueType == 1){
         cprintf("Process spin %d has consumed 10 ms in AQ \n", proc->pid);
       }
 
       p->elapsedTime++;       // incrementing elapsedTime when process is run
 
       // checks time allotment for processes in FQ
-      if ((p->queueType == 0) && (p->elapsedTime >= p->quantumSize))
-      {
+      if ((p->queueType == 0) && (p->elapsedTime >= p->quantumSize)){
         xchg(&p->queueType, 1);       // moving process to queueType = 1 (AQ))
         xchg(&p->quantumSize, 3);     // changing quantumSize to AQ process to 3
         xchg(&p->elapsedTime, 0);     // resetting elapsedTime for the process
       }
 
       // checks time allotment for processes in AQ
-      if ((p->queueType == 1) && (p->elapsedTime >= p->quantumSize))
-      {
+      if ((p->queueType == 1) && (p->elapsedTime >= p->quantumSize)){
         xchg(&p->queueType, 2);         // moving process to queueType = 1 which is the EQ
         xchg(&p->quantumSize, 3);       // changing quantumSize to EQ process to 3
         xchg(&p->elapsedTime, 0);       // resetting elapsedTime for the process
@@ -469,8 +437,7 @@ void sleep(void *chan, struct spinlock *lk)
   proc->chan = 0;
 
   // Reacquire original lock.
-  if (lk != &ptable.lock)
-  { // DOC: sleeplock2
+  if (lk != &ptable.lock){ // DOC: sleeplock2
     release(&ptable.lock);
     acquire(lk);
   }
@@ -480,8 +447,7 @@ void sleep(void *chan, struct spinlock *lk)
 //  Wake up all processes sleeping on chan.
 //  The ptable lock must be held.
 static void
-wakeup1(void *chan)
-{
+wakeup1(void *chan){
   struct proc *p;
 
   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
@@ -490,8 +456,7 @@ wakeup1(void *chan)
 }
 
 // Wake up all processes sleeping on chan.
-void wakeup(void *chan)
-{
+void wakeup(void *chan){
   acquire(&ptable.lock);
   wakeup1(chan);
   release(&ptable.lock);
@@ -500,15 +465,12 @@ void wakeup(void *chan)
 // Kill the process with the given pid.
 // Process won't exit until it returns
 // to user space (see trap in trap.c).
-int kill(int pid)
-{
+int kill(int pid){
   struct proc *p;
 
   acquire(&ptable.lock);
-  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-  {
-    if (p->pid == pid)
-    {
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if (p->pid == pid){
       p->killed = 1;
       // Wake process from sleep if necessary.
       if (p->state == SLEEPING)
@@ -525,8 +487,7 @@ int kill(int pid)
 //  Print a process listing to console.  For debugging.
 //  Runs when user types ^P on console.
 //  No lock to avoid wedging a stuck machine further.
-void procdump(void)
-{
+void procdump(void){
   static char *states[] = {
       [UNUSED] "unused",
       [EMBRYO] "embryo",
@@ -539,8 +500,7 @@ void procdump(void)
   char *state;
   uint pc[10];
 
-  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-  {
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++){
     if (p->state == UNUSED)
       continue;
     if (p->state >= 0 && p->state < NELEM(states) && states[p->state])
