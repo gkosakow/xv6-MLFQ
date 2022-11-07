@@ -12,5 +12,5 @@ int main(int argc, char *argv[]) {
         x++;
     
     printf(1, "pid(%d): x = %d\n", getpid(), x);
-    //exit();
+    exit();
 }

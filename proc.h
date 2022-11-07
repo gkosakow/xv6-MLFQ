@@ -79,10 +79,11 @@ struct proc
   char name[16];              // Process name (debugging)
 
   // Changes by Matthew Alexander for Project 1 pt 2:
-  int queuetype;
-  int quantumsize;
+  volatile uint queueType;
+  volatile uint quantumSize;
 
-  // Changes by Matthew Alexander for Project 2
+  // MatsoA gkosakow counter for elapsed time
+  volatile uint elapsedTime;
 };
 
 // Process memory is laid out contiguously, low addresses first:

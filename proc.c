@@ -46,12 +46,13 @@ allocproc(void)
 
 found:
   p->state = EMBRYO;
-
-  // Changes made by Matthew A. for project 1 pt 2
-  p->queuetype = 0;
-  p->quantumsize = 4;
-
   p->pid = nextpid++;
+
+  // initializing queue tracking attributes for the EMBRYO process
+  p->queueType = 0;   // queuetype = 0 (FQ)
+  p->quantumSize = 1; // quantum size for FQ process is 1 (10 ms)
+  p->elapsedTime = 0; // elapsed time for process is reset
+
   release(&ptable.lock);
 
   // Allocate kernel stack.
@@ -275,11 +276,14 @@ int wait(void)
 //   - swtch to start running that process
 //   - eventually that process transfers control
 //       via swtch back to the scheduler.
+
+// all scheduler changes made by gkosakow & MatsoA for CIS 450 Project 2
+// queueType = 0 (FQ), 1 (AQ), 2 (EQ)
 void scheduler(void)
 {
   struct proc *p;
-
-  // char lastName[16];
+  struct proc *iter; // declaring proc pointer iter to find runnable processes in the ptable and store them for run
+  int aqEmpty = 1;   // adding variable to store if the AQ is empty (no RUNNABLE processes)
 
   for (;;)
   {
@@ -288,35 +292,103 @@ void scheduler(void)
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
-    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+
+    // for loop to go through each level of queue (FQ, AQ, EQ)
+    for (int q = 0; q < 3; q++)
     {
-      if (p->state != RUNNABLE)
+      p = 0;       // initializing the process to be run to 0 to ensure none run before we tell them to
+      aqEmpty = 1; // initializing the aqEmpty var to 1 (AQ is empty)
+
+      // check if active queue is empty
+      for (iter = ptable.proc; iter < &ptable.proc[NPROC]; iter++)
+      {
+        // if something has queuetype of 1, active queue isn't empty
+        if ((iter->queueType == 1) && (iter->state == RUNNABLE))
+        {
+          aqEmpty = 0;
+        }
+      }
+
+      if (aqEmpty == 1)
+      {
+        for (iter = ptable.proc; iter < &ptable.proc[NPROC]; iter++)
+        {
+          // if something has queuetype of 1, active queue isn't empty
+          if (iter->queueType == 2)
+          {
+            cprintf("AQ empty, switched EQ processes to AQ \n");
+            xchg(&iter->queueType, 1);
+          }
+        }
+      }
+
+      for (iter = ptable.proc; iter < &ptable.proc[NPROC]; iter++)
+      {
+        // if entry in process table isn't runnable, skip it
+        if (iter->state != RUNNABLE)
+          continue;
+
+        // if process is in queue, pick that one to run
+        if ((iter->queueType == q) && (iter->state == RUNNABLE))
+        {
+          p = iter;
+          break;
+        }
+      }
+
+      // if no processes were found in this queue, evaluate next queue
+      if (p == 0)
+      {
         continue;
+      }
 
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
-      proc = p;
-      switchuvm(p);
+      proc = p; // loads proc with the process we found
+
+      switchuvm(proc);
+
+      if (p->queueType == 0)
+      {
+        cprintf("Process spin %d has consumed 10 ms in FQ \n", proc->pid);
+      }
+      if (p->queueType == 1)
+      {
+        cprintf("Process spin %d has consumed 10 ms in AQ \n", proc->pid);
+      }
+
+      p->elapsedTime++; // incrementing elapsedTime when process is run
+
+      // checks time allotment for processes in FQ
+      if ((p->queueType == 0) && (p->elapsedTime >= p->quantumSize))
+      {
+        xchg(&p->queueType, 1);   // moving process to queueType = 1 (AQ))
+        xchg(&p->quantumSize, 3); // changing quantumSize to AQ process to 3
+        xchg(&p->elapsedTime, 0); // resetting elapsedTime for the process
+      }
+
+      // checks time allotment for processes in AQ
+      if ((p->queueType == 1) && (p->elapsedTime >= p->quantumSize))
+      {
+        xchg(&p->queueType, 2);   // moving process to queueType = 1 which is the EQ
+        xchg(&p->quantumSize, 3); // changing quantumSize to EQ process to 3
+        xchg(&p->elapsedTime, 0); // resetting elapsedTime for the process
+      }
+
       p->state = RUNNING;
-
-      // Changes made by Matthew A. for Project 1 pt 2
-      // cprintf("Process %s of Process ID %d, Queue Type %d, and Quantum Size %d \n", p->name, p->pid, p->queuetype, p->quantumsize);
-
       swtch(&cpu->scheduler, proc->context);
 
-      // interrupt returns us to kvm
       switchkvm();
 
       // Process is done running for now.
       // It should have changed its p->state before coming back.
-      proc = 0;
+      p = 0;    // clears the variable holding the process we want to run
+      proc = 0; // clears proc
+      q = 0;    // goes back to FQ to check if any processes are RUNNABLE
     }
     release(&ptable.lock);
   }
 }
 
-// Enter scheduler.  Must hold only ptable.lock
+// Enter scheduler. Must hold only ptable.lock
 // and have changed proc->state.
 void sched(void)
 {
@@ -390,6 +462,7 @@ void sleep(void *chan, struct spinlock *lk)
   // Go to sleep.
   proc->chan = chan;
   proc->state = SLEEPING;
+  // cprintf("process %d went to sleep :/", proc->pid);
   sched();
 
   // Tidy up.
