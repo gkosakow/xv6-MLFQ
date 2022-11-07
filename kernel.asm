@@ -8805,12 +8805,12 @@ xchg(volatile uint *addr, uint newval)
 8010446e:	c3                   	ret    
 
 8010446f <pinit>:
+extern void forkret(void);
 extern void trapret(void);
 
 static void wakeup1(void *chan);
 
-void pinit(void)
-{
+void pinit(void){
 8010446f:	55                   	push   %ebp
 80104470:	89 e5                	mov    %esp,%ebp
 80104472:	83 ec 08             	sub    $0x8,%esp
@@ -8826,12 +8826,12 @@ void pinit(void)
 8010448c:	c3                   	ret    
 
 8010448d <allocproc>:
+//  Look in the process table for an UNUSED proc.
 //  If found, change state to EMBRYO and initialize
 //  state required to run in the kernel.
 //  Otherwise return 0.
 static struct proc *
-allocproc(void)
-{
+allocproc(void){
 8010448d:	55                   	push   %ebp
 8010448e:	89 e5                	mov    %esp,%ebp
 80104490:	83 ec 18             	sub    $0x18,%esp
@@ -8851,7 +8851,7 @@ allocproc(void)
 801044af:	8b 40 0c             	mov    0xc(%eax),%eax
 801044b2:	85 c0                	test   %eax,%eax
 801044b4:	74 2a                	je     801044e0 <allocproc+0x53>
-{
+allocproc(void){
   struct proc *p;
   char *sp;
 
@@ -8982,8 +8982,7 @@ found:
 
 // PAGEBREAK: 32
 //  Set up first user process.
-void userinit(void)
-{
+void userinit(void){
 801045ba:	55                   	push   %ebp
 801045bb:	89 e5                	mov    %esp,%ebp
 801045bd:	83 ec 18             	sub    $0x18,%esp
@@ -9096,8 +9095,7 @@ void userinit(void)
 
 // Grow current process's memory by n bytes.
 // Return 0 on success, -1 on failure.
-int growproc(int n)
-{
+int growproc(int n){
 801046d5:	55                   	push   %ebp
 801046d6:	89 e5                	mov    %esp,%ebp
 801046d8:	83 ec 18             	sub    $0x18,%esp
@@ -9174,8 +9172,7 @@ int growproc(int n)
 // Create a new process copying p as the parent.
 // Sets up stack to return as if from system call.
 // Caller must set state of returned proc to RUNNABLE.
-int fork(void)
-{
+int fork(void){
 80104778:	55                   	push   %ebp
 80104779:	89 e5                	mov    %esp,%ebp
 8010477b:	57                   	push   %edi
@@ -9196,7 +9193,7 @@ int fork(void)
 80104794:	e9 68 01 00 00       	jmp    80104901 <fork+0x189>
 
   // Copy process state from p.
-  if ((np->pgdir = copyuvm(proc->pgdir, proc->sz)) == 0)
+  if ((np->pgdir = copyuvm(proc->pgdir, proc->sz)) == 0){
 80104799:	65 a1 04 00 00 00    	mov    %gs:0x4,%eax
 8010479f:	8b 10                	mov    (%eax),%edx
 801047a1:	65 a1 04 00 00 00    	mov    %gs:0x4,%eax
@@ -9213,7 +9210,6 @@ int fork(void)
 801047c2:	8b 40 04             	mov    0x4(%eax),%eax
 801047c5:	85 c0                	test   %eax,%eax
 801047c7:	75 30                	jne    801047f9 <fork+0x81>
-  {
     kfree(np->kstack);
 801047c9:	8b 45 e0             	mov    -0x20(%ebp),%eax
 801047cc:	8b 40 08             	mov    0x8(%eax),%eax
@@ -9351,8 +9347,7 @@ int fork(void)
 // Exit the current process.  Does not return.
 // An exited process remains in the zombie state
 // until its parent calls wait() to find out it exited.
-void exit(void)
-{
+void exit(void){
 80104909:	55                   	push   %ebp
 8010490a:	89 e5                	mov    %esp,%ebp
 8010490c:	83 ec 18             	sub    $0x18,%esp
@@ -9370,18 +9365,16 @@ void exit(void)
 80104927:	e8 3a bc ff ff       	call   80100566 <panic>
 
   // Close all open files.
-  for (fd = 0; fd < NOFILE; fd++)
+  for (fd = 0; fd < NOFILE; fd++){
 8010492c:	c7 45 f0 00 00 00 00 	movl   $0x0,-0x10(%ebp)
 80104933:	eb 48                	jmp    8010497d <exit+0x74>
-  {
-    if (proc->ofile[fd])
+    if (proc->ofile[fd]){
 80104935:	65 a1 04 00 00 00    	mov    %gs:0x4,%eax
 8010493b:	8b 55 f0             	mov    -0x10(%ebp),%edx
 8010493e:	83 c2 08             	add    $0x8,%edx
 80104941:	8b 44 90 08          	mov    0x8(%eax,%edx,4),%eax
 80104945:	85 c0                	test   %eax,%eax
 80104947:	74 30                	je     80104979 <exit+0x70>
-    {
       fileclose(proc->ofile[fd]);
 80104949:	65 a1 04 00 00 00    	mov    %gs:0x4,%eax
 8010494f:	8b 55 f0             	mov    -0x10(%ebp),%edx
@@ -9402,7 +9395,7 @@ void exit(void)
     panic("init exiting");
 
   // Close all open files.
-  for (fd = 0; fd < NOFILE; fd++)
+  for (fd = 0; fd < NOFILE; fd++){
 80104979:	83 45 f0 01          	addl   $0x1,-0x10(%ebp)
 8010497d:	83 7d f0 0f          	cmpl   $0xf,-0x10(%ebp)
 80104981:	7e b2                	jle    80104935 <exit+0x2c>
@@ -9442,17 +9435,15 @@ void exit(void)
 801049d1:	83 c4 10             	add    $0x10,%esp
 
   // Pass abandoned children to init.
-  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++){
 801049d4:	c7 45 f4 94 29 11 80 	movl   $0x80112994,-0xc(%ebp)
 801049db:	eb 3f                	jmp    80104a1c <exit+0x113>
-  {
-    if (p->parent == proc)
+    if (p->parent == proc){
 801049dd:	8b 45 f4             	mov    -0xc(%ebp),%eax
 801049e0:	8b 50 14             	mov    0x14(%eax),%edx
 801049e3:	65 a1 04 00 00 00    	mov    %gs:0x4,%eax
 801049e9:	39 c2                	cmp    %eax,%edx
 801049eb:	75 28                	jne    80104a15 <exit+0x10c>
-    {
       p->parent = initproc;
 801049ed:	8b 15 48 b6 10 80    	mov    0x8010b648,%edx
 801049f3:	8b 45 f4             	mov    -0xc(%ebp),%eax
@@ -9473,7 +9464,7 @@ void exit(void)
   wakeup1(proc->parent);
 
   // Pass abandoned children to init.
-  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++){
 80104a15:	81 45 f4 88 00 00 00 	addl   $0x88,-0xc(%ebp)
 80104a1c:	81 7d f4 94 4b 11 80 	cmpl   $0x80114b94,-0xc(%ebp)
 80104a23:	72 b8                	jb     801049dd <exit+0xd4>
@@ -9497,8 +9488,7 @@ void exit(void)
 
 // Wait for a child process to exit and return its pid.
 // Return -1 if this process has no children.
-int wait(void)
-{
+int wait(void){
 80104a44:	55                   	push   %ebp
 80104a45:	89 e5                	mov    %esp,%ebp
 80104a47:	83 ec 18             	sub    $0x18,%esp
@@ -9510,15 +9500,13 @@ int wait(void)
 80104a4d:	68 60 29 11 80       	push   $0x80112960
 80104a52:	e8 06 08 00 00       	call   8010525d <acquire>
 80104a57:	83 c4 10             	add    $0x10,%esp
-  for (;;)
-  {
+  for (;;){
     // Scan through table looking for zombie children.
     havekids = 0;
 80104a5a:	c7 45 f0 00 00 00 00 	movl   $0x0,-0x10(%ebp)
-    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++){
 80104a61:	c7 45 f4 94 29 11 80 	movl   $0x80112994,-0xc(%ebp)
 80104a68:	e9 a9 00 00 00       	jmp    80104b16 <wait+0xd2>
-    {
       if (p->parent != proc)
 80104a6d:	8b 45 f4             	mov    -0xc(%ebp),%eax
 80104a70:	8b 50 14             	mov    0x14(%eax),%edx
@@ -9528,12 +9516,11 @@ int wait(void)
         continue;
       havekids = 1;
 80104a81:	c7 45 f0 01 00 00 00 	movl   $0x1,-0x10(%ebp)
-      if (p->state == ZOMBIE)
+      if (p->state == ZOMBIE){
 80104a88:	8b 45 f4             	mov    -0xc(%ebp),%eax
 80104a8b:	8b 40 0c             	mov    0xc(%eax),%eax
 80104a8e:	83 f8 05             	cmp    $0x5,%eax
 80104a91:	75 7c                	jne    80104b0f <wait+0xcb>
-      {
         // Found one.
         pid = p->pid;
 80104a93:	8b 45 f4             	mov    -0xc(%ebp),%eax
@@ -9579,19 +9566,19 @@ int wait(void)
         return pid;
 80104b09:	8b 45 ec             	mov    -0x14(%ebp),%eax
 80104b0c:	eb 5b                	jmp    80104b69 <wait+0x125>
+  for (;;){
     // Scan through table looking for zombie children.
     havekids = 0;
-    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-    {
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++){
       if (p->parent != proc)
         continue;
 80104b0e:	90                   	nop
+
   acquire(&ptable.lock);
-  for (;;)
-  {
+  for (;;){
     // Scan through table looking for zombie children.
     havekids = 0;
-    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+    for (p = ptable.proc; p < &ptable.proc[NPROC]; p++){
 80104b0f:	81 45 f4 88 00 00 00 	addl   $0x88,-0xc(%ebp)
 80104b16:	81 7d f4 94 4b 11 80 	cmpl   $0x80114b94,-0xc(%ebp)
 80104b1d:	0f 82 4a ff ff ff    	jb     80104a6d <wait+0x29>
@@ -9600,14 +9587,13 @@ int wait(void)
     }
 
     // No point waiting if we don't have any children.
-    if (!havekids || proc->killed)
+    if (!havekids || proc->killed){
 80104b23:	83 7d f0 00          	cmpl   $0x0,-0x10(%ebp)
 80104b27:	74 0d                	je     80104b36 <wait+0xf2>
 80104b29:	65 a1 04 00 00 00    	mov    %gs:0x4,%eax
 80104b2f:	8b 40 24             	mov    0x24(%eax),%eax
 80104b32:	85 c0                	test   %eax,%eax
 80104b34:	74 17                	je     80104b4d <wait+0x109>
-    {
       release(&ptable.lock);
 80104b36:	83 ec 0c             	sub    $0xc,%esp
 80104b39:	68 60 29 11 80       	push   $0x80112960
@@ -9633,12 +9619,12 @@ int wait(void)
 80104b6a:	c3                   	ret    
 
 80104b6b <scheduler>:
+//   - eventually that process transfers control
 //       via swtch back to the scheduler.
 
 // all scheduler changes made by gkosakow & MatsoA for CIS 450 Project 2
 // queueType = 0 (FQ), 1 (AQ), 2 (EQ)
-void scheduler(void)
-{
+void scheduler(void){
 80104b6b:	55                   	push   %ebp
 80104b6c:	89 e5                	mov    %esp,%ebp
 80104b6e:	83 ec 18             	sub    $0x18,%esp
@@ -9647,8 +9633,7 @@ void scheduler(void)
   int aqEmpty = 1;        // adding variable to store if the AQ is empty (no RUNNABLE processes)
 80104b71:	c7 45 ec 01 00 00 00 	movl   $0x1,-0x14(%ebp)
 
-  for (;;)
-  {
+  for (;;){
     // Enable interrupts on this processor.
     sti();
 80104b78:	e8 d1 f8 ff ff       	call   8010444e <sti>
@@ -9661,22 +9646,20 @@ void scheduler(void)
 80104b8a:	83 c4 10             	add    $0x10,%esp
 
     // for loop to go through each level of queue (FQ, AQ, EQ)
-    for (int q = 0; q < 3; q++)
+    for (int q = 0; q < 3; q++){
 80104b8d:	c7 45 e8 00 00 00 00 	movl   $0x0,-0x18(%ebp)
 80104b94:	e9 66 02 00 00       	jmp    80104dff <scheduler+0x294>
-    {
       p = 0;              // initializing the process to be run to 0 to ensure none run before we tell them to
 80104b99:	c7 45 f4 00 00 00 00 	movl   $0x0,-0xc(%ebp)
       aqEmpty = 1;        // initializing the aqEmpty var to 1 (AQ is empty)
 80104ba0:	c7 45 ec 01 00 00 00 	movl   $0x1,-0x14(%ebp)
 
       // check if active queue is empty
-      for (iter = ptable.proc; iter < &ptable.proc[NPROC]; iter++)
+      for (iter = ptable.proc; iter < &ptable.proc[NPROC]; iter++){
 80104ba7:	c7 45 f0 94 29 11 80 	movl   $0x80112994,-0x10(%ebp)
 80104bae:	eb 24                	jmp    80104bd4 <scheduler+0x69>
-      {
         // if something has queuetype of 1, active queue isn't empty
-        if ((iter->queueType == 1) && (iter->state == RUNNABLE))
+        if ((iter->queueType == 1) && (iter->state == RUNNABLE)){
 80104bb0:	8b 45 f0             	mov    -0x10(%ebp),%eax
 80104bb3:	8b 40 7c             	mov    0x7c(%eax),%eax
 80104bb6:	83 f8 01             	cmp    $0x1,%eax
@@ -9685,38 +9668,34 @@ void scheduler(void)
 80104bbe:	8b 40 0c             	mov    0xc(%eax),%eax
 80104bc1:	83 f8 03             	cmp    $0x3,%eax
 80104bc4:	75 07                	jne    80104bcd <scheduler+0x62>
-        {
           aqEmpty = 0;
 80104bc6:	c7 45 ec 00 00 00 00 	movl   $0x0,-0x14(%ebp)
-    {
+    for (int q = 0; q < 3; q++){
       p = 0;              // initializing the process to be run to 0 to ensure none run before we tell them to
       aqEmpty = 1;        // initializing the aqEmpty var to 1 (AQ is empty)
 
       // check if active queue is empty
-      for (iter = ptable.proc; iter < &ptable.proc[NPROC]; iter++)
+      for (iter = ptable.proc; iter < &ptable.proc[NPROC]; iter++){
 80104bcd:	81 45 f0 88 00 00 00 	addl   $0x88,-0x10(%ebp)
 80104bd4:	81 7d f0 94 4b 11 80 	cmpl   $0x80114b94,-0x10(%ebp)
 80104bdb:	72 d3                	jb     80104bb0 <scheduler+0x45>
-        {
+        if ((iter->queueType == 1) && (iter->state == RUNNABLE)){
           aqEmpty = 0;
         }
       }
 
-      if (aqEmpty == 1)
+      if (aqEmpty == 1){
 80104bdd:	83 7d ec 01          	cmpl   $0x1,-0x14(%ebp)
 80104be1:	75 48                	jne    80104c2b <scheduler+0xc0>
-      {
-        for (iter = ptable.proc; iter < &ptable.proc[NPROC]; iter++)
+        for (iter = ptable.proc; iter < &ptable.proc[NPROC]; iter++){
 80104be3:	c7 45 f0 94 29 11 80 	movl   $0x80112994,-0x10(%ebp)
 80104bea:	eb 36                	jmp    80104c22 <scheduler+0xb7>
-        {
           // if something has queuetype of 1, active queue isn't empty
-          if (iter->queueType == 2)
+          if (iter->queueType == 2){
 80104bec:	8b 45 f0             	mov    -0x10(%ebp),%eax
 80104bef:	8b 40 7c             	mov    0x7c(%eax),%eax
 80104bf2:	83 f8 02             	cmp    $0x2,%eax
 80104bf5:	75 24                	jne    80104c1b <scheduler+0xb0>
-          {
             cprintf("AQ empty, switched EQ processes to AQ \n");
 80104bf7:	83 ec 0c             	sub    $0xc,%esp
 80104bfa:	68 14 8b 10 80       	push   $0x80108b14
@@ -9730,12 +9709,12 @@ void scheduler(void)
 80104c12:	50                   	push   %eax
 80104c13:	e8 3d f8 ff ff       	call   80104455 <xchg>
 80104c18:	83 c4 10             	add    $0x10,%esp
+          aqEmpty = 0;
         }
       }
 
-      if (aqEmpty == 1)
-      {
-        for (iter = ptable.proc; iter < &ptable.proc[NPROC]; iter++)
+      if (aqEmpty == 1){
+        for (iter = ptable.proc; iter < &ptable.proc[NPROC]; iter++){
 80104c1b:	81 45 f0 88 00 00 00 	addl   $0x88,-0x10(%ebp)
 80104c22:	81 7d f0 94 4b 11 80 	cmpl   $0x80114b94,-0x10(%ebp)
 80104c29:	72 c1                	jb     80104bec <scheduler+0x81>
@@ -9744,10 +9723,9 @@ void scheduler(void)
         }
       }
 
-      for (iter = ptable.proc; iter < &ptable.proc[NPROC]; iter++)
+      for (iter = ptable.proc; iter < &ptable.proc[NPROC]; iter++){
 80104c2b:	c7 45 f0 94 29 11 80 	movl   $0x80112994,-0x10(%ebp)
 80104c32:	eb 33                	jmp    80104c67 <scheduler+0xfc>
-      {
         // if entry in process table isn't runnable, skip it
         if (iter->state != RUNNABLE)
 80104c34:	8b 45 f0             	mov    -0x10(%ebp),%eax
@@ -9757,7 +9735,7 @@ void scheduler(void)
           continue;
 
         // if process is in queue, pick that one to run
-        if ((iter->queueType == q) && (iter->state == RUNNABLE))
+        if ((iter->queueType == q) && (iter->state == RUNNABLE)){
 80104c3f:	8b 45 f0             	mov    -0x10(%ebp),%eax
 80104c42:	8b 50 7c             	mov    0x7c(%eax),%edx
 80104c45:	8b 45 e8             	mov    -0x18(%ebp),%eax
@@ -9767,15 +9745,14 @@ void scheduler(void)
 80104c4f:	8b 40 0c             	mov    0xc(%eax),%eax
 80104c52:	83 f8 03             	cmp    $0x3,%eax
 80104c55:	75 09                	jne    80104c60 <scheduler+0xf5>
-        {
           p = iter;
 80104c57:	8b 45 f0             	mov    -0x10(%ebp),%eax
 80104c5a:	89 45 f4             	mov    %eax,-0xc(%ebp)
           break;
 80104c5d:	eb 11                	jmp    80104c70 <scheduler+0x105>
+      }
 
-      for (iter = ptable.proc; iter < &ptable.proc[NPROC]; iter++)
-      {
+      for (iter = ptable.proc; iter < &ptable.proc[NPROC]; iter++){
         // if entry in process table isn't runnable, skip it
         if (iter->state != RUNNABLE)
           continue;
@@ -9785,7 +9762,7 @@ void scheduler(void)
         }
       }
 
-      for (iter = ptable.proc; iter < &ptable.proc[NPROC]; iter++)
+      for (iter = ptable.proc; iter < &ptable.proc[NPROC]; iter++){
 80104c60:	81 45 f0 88 00 00 00 	addl   $0x88,-0x10(%ebp)
 80104c67:	81 7d f0 94 4b 11 80 	cmpl   $0x80114b94,-0x10(%ebp)
 80104c6e:	72 c4                	jb     80104c34 <scheduler+0xc9>
@@ -9794,10 +9771,9 @@ void scheduler(void)
       }
 
       // if no processes were found in this queue, evaluate next queue
-      if (p == 0)
+      if (p == 0){
 80104c70:	83 7d f4 00          	cmpl   $0x0,-0xc(%ebp)
 80104c74:	0f 84 80 01 00 00    	je     80104dfa <scheduler+0x28f>
-      {
         continue;
       }
 
@@ -9812,12 +9788,11 @@ void scheduler(void)
 80104c8d:	e8 b4 33 00 00       	call   80108046 <switchuvm>
 80104c92:	83 c4 10             	add    $0x10,%esp
 
-      if (p->queueType == 0)
+      if (p->queueType == 0){
 80104c95:	8b 45 f4             	mov    -0xc(%ebp),%eax
 80104c98:	8b 40 7c             	mov    0x7c(%eax),%eax
 80104c9b:	85 c0                	test   %eax,%eax
 80104c9d:	75 1a                	jne    80104cb9 <scheduler+0x14e>
-      {
         cprintf("Process spin %d has consumed 10 ms in FQ \n", proc->pid);
 80104c9f:	65 a1 04 00 00 00    	mov    %gs:0x4,%eax
 80104ca5:	8b 40 10             	mov    0x10(%eax),%eax
@@ -9827,12 +9802,11 @@ void scheduler(void)
 80104cb1:	e8 10 b7 ff ff       	call   801003c6 <cprintf>
 80104cb6:	83 c4 10             	add    $0x10,%esp
       }
-      if (p->queueType == 1)
+      if (p->queueType == 1){
 80104cb9:	8b 45 f4             	mov    -0xc(%ebp),%eax
 80104cbc:	8b 40 7c             	mov    0x7c(%eax),%eax
 80104cbf:	83 f8 01             	cmp    $0x1,%eax
 80104cc2:	75 1a                	jne    80104cde <scheduler+0x173>
-      {
         cprintf("Process spin %d has consumed 10 ms in AQ \n", proc->pid);
 80104cc4:	65 a1 04 00 00 00    	mov    %gs:0x4,%eax
 80104cca:	8b 40 10             	mov    0x10(%eax),%eax
@@ -9851,7 +9825,7 @@ void scheduler(void)
 80104ced:	89 90 84 00 00 00    	mov    %edx,0x84(%eax)
 
       // checks time allotment for processes in FQ
-      if ((p->queueType == 0) && (p->elapsedTime >= p->quantumSize))
+      if ((p->queueType == 0) && (p->elapsedTime >= p->quantumSize)){
 80104cf3:	8b 45 f4             	mov    -0xc(%ebp),%eax
 80104cf6:	8b 40 7c             	mov    0x7c(%eax),%eax
 80104cf9:	85 c0                	test   %eax,%eax
@@ -9862,7 +9836,6 @@ void scheduler(void)
 80104d09:	8b 80 80 00 00 00    	mov    0x80(%eax),%eax
 80104d0f:	39 c2                	cmp    %eax,%edx
 80104d11:	72 3e                	jb     80104d51 <scheduler+0x1e6>
-      {
         xchg(&p->queueType, 1);       // moving process to queueType = 1 (AQ))
 80104d13:	8b 45 f4             	mov    -0xc(%ebp),%eax
 80104d16:	83 c0 7c             	add    $0x7c,%eax
@@ -9890,7 +9863,7 @@ void scheduler(void)
       }
 
       // checks time allotment for processes in AQ
-      if ((p->queueType == 1) && (p->elapsedTime >= p->quantumSize))
+      if ((p->queueType == 1) && (p->elapsedTime >= p->quantumSize)){
 80104d51:	8b 45 f4             	mov    -0xc(%ebp),%eax
 80104d54:	8b 40 7c             	mov    0x7c(%eax),%eax
 80104d57:	83 f8 01             	cmp    $0x1,%eax
@@ -9901,7 +9874,6 @@ void scheduler(void)
 80104d68:	8b 80 80 00 00 00    	mov    0x80(%eax),%eax
 80104d6e:	39 c2                	cmp    %eax,%edx
 80104d70:	72 3e                	jb     80104db0 <scheduler+0x245>
-      {
         xchg(&p->queueType, 2);         // moving process to queueType = 1 which is the EQ
 80104d72:	8b 45 f4             	mov    -0xc(%ebp),%eax
 80104d75:	83 c0 7c             	add    $0x7c,%eax
@@ -9955,11 +9927,11 @@ void scheduler(void)
       q = 0;        // goes back to FQ to check if any processes are RUNNABLE
 80104df1:	c7 45 e8 00 00 00 00 	movl   $0x0,-0x18(%ebp)
 80104df8:	eb 01                	jmp    80104dfb <scheduler+0x290>
+        }
       }
 
       // if no processes were found in this queue, evaluate next queue
-      if (p == 0)
-      {
+      if (p == 0){
         continue;
 80104dfa:	90                   	nop
 
@@ -9967,7 +9939,7 @@ void scheduler(void)
     acquire(&ptable.lock);
 
     // for loop to go through each level of queue (FQ, AQ, EQ)
-    for (int q = 0; q < 3; q++)
+    for (int q = 0; q < 3; q++){
 80104dfb:	83 45 e8 01          	addl   $0x1,-0x18(%ebp)
 80104dff:	83 7d e8 02          	cmpl   $0x2,-0x18(%ebp)
 80104e03:	0f 8e 90 fd ff ff    	jle    80104b99 <scheduler+0x2e>
@@ -10195,10 +10167,9 @@ void sleep(void *chan, struct spinlock *lk)
 80104fd6:	c7 40 20 00 00 00 00 	movl   $0x0,0x20(%eax)
 
   // Reacquire original lock.
-  if (lk != &ptable.lock)
+  if (lk != &ptable.lock){ // DOC: sleeplock2
 80104fdd:	81 7d 0c 60 29 11 80 	cmpl   $0x80112960,0xc(%ebp)
 80104fe4:	74 1e                	je     80105004 <sleep+0xa9>
-  { // DOC: sleeplock2
     release(&ptable.lock);
 80104fe6:	83 ec 0c             	sub    $0xc,%esp
 80104fe9:	68 60 29 11 80       	push   $0x80112960
@@ -10216,12 +10187,12 @@ void sleep(void *chan, struct spinlock *lk)
 80105006:	c3                   	ret    
 
 80105007 <wakeup1>:
+
 // PAGEBREAK!
 //  Wake up all processes sleeping on chan.
 //  The ptable lock must be held.
 static void
-wakeup1(void *chan)
-{
+wakeup1(void *chan){
 80105007:	55                   	push   %ebp
 80105008:	89 e5                	mov    %esp,%ebp
 8010500a:	83 ec 10             	sub    $0x10,%esp
@@ -10242,9 +10213,9 @@ wakeup1(void *chan)
       p->state = RUNNABLE;
 8010502c:	8b 45 fc             	mov    -0x4(%ebp),%eax
 8010502f:	c7 40 0c 03 00 00 00 	movl   $0x3,0xc(%eax)
+//  The ptable lock must be held.
 static void
-wakeup1(void *chan)
-{
+wakeup1(void *chan){
   struct proc *p;
 
   for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
@@ -10261,8 +10232,7 @@ wakeup1(void *chan)
 80105049 <wakeup>:
 
 // Wake up all processes sleeping on chan.
-void wakeup(void *chan)
-{
+void wakeup(void *chan){
 80105049:	55                   	push   %ebp
 8010504a:	89 e5                	mov    %esp,%ebp
 8010504c:	83 ec 08             	sub    $0x8,%esp
@@ -10291,8 +10261,7 @@ void wakeup(void *chan)
 // Kill the process with the given pid.
 // Process won't exit until it returns
 // to user space (see trap in trap.c).
-int kill(int pid)
-{
+int kill(int pid){
 80105080:	55                   	push   %ebp
 80105081:	89 e5                	mov    %esp,%ebp
 80105083:	83 ec 18             	sub    $0x18,%esp
@@ -10303,16 +10272,14 @@ int kill(int pid)
 80105089:	68 60 29 11 80       	push   $0x80112960
 8010508e:	e8 ca 01 00 00       	call   8010525d <acquire>
 80105093:	83 c4 10             	add    $0x10,%esp
-  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++){
 80105096:	c7 45 f4 94 29 11 80 	movl   $0x80112994,-0xc(%ebp)
 8010509d:	eb 48                	jmp    801050e7 <kill+0x67>
-  {
-    if (p->pid == pid)
+    if (p->pid == pid){
 8010509f:	8b 45 f4             	mov    -0xc(%ebp),%eax
 801050a2:	8b 40 10             	mov    0x10(%eax),%eax
 801050a5:	3b 45 08             	cmp    0x8(%ebp),%eax
 801050a8:	75 36                	jne    801050e0 <kill+0x60>
-    {
       p->killed = 1;
 801050aa:	8b 45 f4             	mov    -0xc(%ebp),%eax
 801050ad:	c7 40 24 01 00 00 00 	movl   $0x1,0x24(%eax)
@@ -10333,12 +10300,12 @@ int kill(int pid)
       return 0;
 801050d9:	b8 00 00 00 00       	mov    $0x0,%eax
 801050de:	eb 25                	jmp    80105105 <kill+0x85>
-int kill(int pid)
-{
+// to user space (see trap in trap.c).
+int kill(int pid){
   struct proc *p;
 
   acquire(&ptable.lock);
-  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++){
 801050e0:	81 45 f4 88 00 00 00 	addl   $0x88,-0xc(%ebp)
 801050e7:	81 7d f4 94 4b 11 80 	cmpl   $0x80114b94,-0xc(%ebp)
 801050ee:	72 af                	jb     8010509f <kill+0x1f>
@@ -10359,12 +10326,12 @@ int kill(int pid)
 80105106:	c3                   	ret    
 
 80105107 <procdump>:
+
 // PAGEBREAK: 36
 //  Print a process listing to console.  For debugging.
 //  Runs when user types ^P on console.
 //  No lock to avoid wedging a stuck machine further.
-void procdump(void)
-{
+void procdump(void){
 80105107:	55                   	push   %ebp
 80105108:	89 e5                	mov    %esp,%ebp
 8010510a:	83 ec 48             	sub    $0x48,%esp
@@ -10373,10 +10340,9 @@ void procdump(void)
   char *state;
   uint pc[10];
 
-  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++){
 8010510d:	c7 45 f0 94 29 11 80 	movl   $0x80112994,-0x10(%ebp)
 80105114:	e9 da 00 00 00       	jmp    801051f3 <procdump+0xec>
-  {
     if (p->state == UNUSED)
 80105119:	8b 45 f0             	mov    -0x10(%ebp),%eax
 8010511c:	8b 40 0c             	mov    0xc(%eax),%eax
@@ -10463,10 +10429,10 @@ void procdump(void)
 801051e1:	e8 e0 b1 ff ff       	call   801003c6 <cprintf>
 801051e6:	83 c4 10             	add    $0x10,%esp
 801051e9:	eb 01                	jmp    801051ec <procdump+0xe5>
+  char *state;
   uint pc[10];
 
-  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
-  {
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++){
     if (p->state == UNUSED)
       continue;
 801051eb:	90                   	nop
@@ -10475,7 +10441,7 @@ void procdump(void)
   char *state;
   uint pc[10];
 
-  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++){
 801051ec:	81 45 f0 88 00 00 00 	addl   $0x88,-0x10(%ebp)
 801051f3:	81 7d f0 94 4b 11 80 	cmpl   $0x80114b94,-0x10(%ebp)
 801051fa:	0f 82 19 ff ff ff    	jb     80105119 <procdump+0x12>

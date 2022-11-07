@@ -133,7 +133,7 @@ int fork(void){
   struct proc *np;
 
   // Allocate process.
-  if ((np = allocproc()) == 0)`
+  if ((np = allocproc()) == 0)
     return -1;
 
   // Copy process state from p.
